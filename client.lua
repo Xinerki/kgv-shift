@@ -148,7 +148,7 @@ function processFreecam()
 				
 				if hit then
 					lastPed = PlayerPedId()
-					if IsEntityAPed(hitEnt) then
+					if IsEntityAPed(hitEnt) and false then -- TODO: fix crash, because it isn't supposed to crash
 						if IsPedInAnyVehicle(lastPed, false) == 1 then
 							inVehicle = true
 							vehicle = GetVehiclePedIsIn(lastPed, false)
@@ -156,7 +156,7 @@ function processFreecam()
 						end
 						targetPed = hitEnt
 						ClearPedTasksImmediately(targetPed)
-						ChangePlayerPed(PlayerId(), targetPed, 0, 0) -- SWITCH HAPPENS HERE
+						-- ChangePlayerPed(PlayerId(), targetPed, 0, 0) -- SWITCH HAPPENS HERE
 						if inVehicle == true then 
 							-- SetEntityAsMissionEntity(vehicle, true)
 							TaskWarpPedIntoVehicle(lastPed, vehicle, seat)
