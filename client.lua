@@ -2,7 +2,7 @@
 freecamEnabled = false
 screenFX = "SwitchShortTrevorMid"
 
-originalPed = PlayerPedId()
+originalPed = 0
 originalCar = 0
 originalSelfRegistered = false
 
@@ -37,16 +37,16 @@ function toggleFreecam()
 end
 
 Citizen.CreateThread(function()
-	while true do
+	while true do Citizen.Wait(0)
 		if IsDisabledControlJustPressed(1, 73) then
 			toggleFreecam()
 		end
-		Citizen.Wait(0)
 	end
 end)
 
 Citizen.CreateThread(function ()
-	while true do 
+	-- originalPed = PlayerPedId()
+	while true do Citizen.Wait(0)	
 		if freecamEnabled == true then
 			local resX, resY = GetScreenActiveResolution()
 			DrawRect(0.5, 0.5, 0.01, 0.01, 240, 151, 63, 150)
@@ -64,15 +64,14 @@ Citizen.CreateThread(function ()
 					if DoesEntityExist(originalPed) then
 						ClearPedTasksImmediately(originalPed)
 						ChangePlayerPed(PlayerId(), originalPed, 0, 0) -- SWITCH HAPPENS HERE
-						-- TaskSetBlockingOfNonTemporaryEvents(lastPed, true)
-						-- SetEntityAsMissionEntity(lastPed, 0, 0)
 						if inVehicle == true then 
-							-- SetEntityAsMissionEntity(vehicle, true)
 							TaskWarpPedIntoVehicle(lastPed, vehicle, seat)
 						end
-						-- SetEntityAsNoLongerNeeded(lastPed)
-						TaskWarpPedIntoVehicle(originalPed, originalCar, seat)
+						Wait(1500)
+						TaskWarpPedIntoVehicle(originalPed, originalCar, -1)
+						SetBlipAlpha(originalSelfBlip, 0)
 						toggleFreecam()
+					else
 					end
 				end
 			end
@@ -80,8 +79,7 @@ Citizen.CreateThread(function ()
 			if IsDisabledControlJustPressed(0, 69) then
 				local posX, posY, posZ = table.unpack(exports['shift-freecam']:GetPosition())
 				local rotX, rotY, rotZ = table.unpack(exports['shift-freecam']:GetRotation())
-				local rotZ1, rotX1 = -rotZ, rotX
-				local offsetX, offsetY, offsetZ = getCameraPositionOffset(rotZ1, rotX1, 50.0)
+				local offsetX, offsetY, offsetZ = getCameraPositionOffset(-rotZ, rotX, 150.0)
 				local ray = StartShapeTestRay(posX, posY, posZ, posX+offsetX, posY+offsetY, posZ+offsetZ, -1, PlayerPedId(), 0)
 				local _, hit, _end, _, hitEnt = GetShapeTestResult(ray)
 				
@@ -104,7 +102,8 @@ Citizen.CreateThread(function ()
 					end
 					
 					if IsEntityAVehicle(hitEnt) then
-						if originalCar == 0 then originalCar = GetVehiclePedIsIn(lastPed) end
+						if originalCar == 0 then originalCar = hitEnt end
+						if originalPed == 0 then originalPed = lastPed end
 						if IsPedInAnyVehicle(lastPed, false) == 1 then
 							inVehicle = true
 							vehicle = GetVehiclePedIsIn(lastPed, false)
@@ -114,9 +113,22 @@ Citizen.CreateThread(function ()
 						if DoesEntityExist(targetPed) then
 							ClearPedTasksImmediately(targetPed)
 							ChangePlayerPed(PlayerId(), targetPed, 0, 0) -- SWITCH HAPPENS HERE
-							-- TaskSetBlockingOfNonTemporaryEvents(lastPed, true)
+							
+							if lastPed == originalPed then 
+								-- SetEntityAsMissionEntity(lastPed, true)
+								if not originalSelfBlip then
+									originalSelfBlip = AddBlipForEntity(lastPed)
+									SetBlipSprite(originalSelfBlip, 422)
+									SetBlipScale(originalSelfBlip, 1.0)
+									SetBlipColour(originalSelfBlip, 3)
+								else
+									SetBlipAlpha(originalSelfBlip, 255)
+								end
+							end
+							
 							if originalSelfRegistered == false then
-								SetEntityAsMissionEntity(lastPed, 0, 0)
+								TaskSetBlockingOfNonTemporaryEvents(lastPed, true)
+								-- SetEntityAsMissionEntity(originalCar)
 							end
 							if inVehicle == true then 
 								if originalSelfRegistered == false then
@@ -126,13 +138,12 @@ Citizen.CreateThread(function ()
 							end
 							if originalSelfRegistered == false then originalSelfRegistered = true end
 							-- SetEntityAsNoLongerNeeded(lastPed)
-							TaskWarpPedIntoVehicle(targetPed, hitEnt, seat)
+							TaskWarpPedIntoVehicle(targetPed, hitEnt, -1)
 							toggleFreecam()
 						end
 					end
 				end
 			end
 		end
-		Citizen.Wait(0)	
 	end
 end)
