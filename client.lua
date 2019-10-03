@@ -19,43 +19,45 @@ chatInputActive = false
 SetTimeScale(1.0)
 SetGamePaused(false)
 
-function toggleFreecam() -- MUST START THREAD
-	freecamEnabled = not freecamEnabled
+function toggleFreecam()
+	Citizen.CreateThread(function()
+		freecamEnabled = not freecamEnabled
 
-	if freecamEnabled == true then
-		RenderScriptCams(true, 1, 1000,  true,  true)
-		StartScreenEffect("SwitchShortFranklinMid", 500, false)
-		PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
-		pos = GetGameplayCamCoord()
-		pos = vector3(pos.x, pos.y, pos.z+1.0)
-		local rotx, roty, rotz = table.unpack(GetEntityRotation(PlayerPedId()))
-		rotation = vector3(rotz+GetGameplayCamRelativeHeading(), GetGameplayCamRelativePitch()-10.0, 0.0)
-		fov = 50.0
-		roll = 0.0
-		-- DisableAllControlActions(0)
-		SetPlayerControl(PlayerId(), false, 0)
-		TaskVehicleDriveWander(PlayerPedId(), GetVehiclePedIsIn(PlayerPedId(), false), 10.0, 0)
-		-- SetTimeScale(0.0)
-	else
-		RenderScriptCams(false, 1, 1000,  true,  true)
-		StartScreenEffect("SwitchShortFranklinMid", 500, false)
-		PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
-		-- EnableAllControlActions(0)
-		SetPlayerControl(PlayerId(), true, 0)
-		ClearPedTasks(PlayerPedId())
-		UnlockMinimapPosition()
-		UnlockMinimapAngle(0.0)
-		-- SetTimeScale(1.0)
-	end
-	-- FreezeEntityPosition(PlayerPedId(), freecamEnabled)
-	Citizen.Wait(250)
-	StopScreenEffect()
+		if freecamEnabled == true then
+			RenderScriptCams(true, 1, 1000,  true,  true)
+			StartScreenEffect("SwitchShortFranklinMid", 500, false)
+			PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
+			pos = GetGameplayCamCoord()
+			pos = vector3(pos.x, pos.y, pos.z+1.0)
+			local rotx, roty, rotz = table.unpack(GetEntityRotation(PlayerPedId()))
+			rotation = vector3(rotz+GetGameplayCamRelativeHeading(), GetGameplayCamRelativePitch()-10.0, 0.0)
+			fov = 50.0
+			roll = 0.0
+			-- DisableAllControlActions(0)
+			SetPlayerControl(PlayerId(), false, 0)
+			TaskVehicleDriveWander(PlayerPedId(), GetVehiclePedIsIn(PlayerPedId(), false), 10.0, 0)
+			-- SetTimeScale(0.0)
+		else
+			RenderScriptCams(false, 1, 1000,  true,  true)
+			StartScreenEffect("SwitchShortFranklinMid", 500, false)
+			PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
+			-- EnableAllControlActions(0)
+			SetPlayerControl(PlayerId(), true, 0)
+			ClearPedTasks(PlayerPedId())
+			UnlockMinimapPosition()
+			UnlockMinimapAngle(0.0)
+			-- SetTimeScale(1.0)
+		end
+		-- FreezeEntityPosition(PlayerPedId(), freecamEnabled)
+		Citizen.Wait(250)
+		StopScreenEffect()
+	end)
 end
 
 Citizen.CreateThread(function()
 	while true do
 		if IsDisabledControlJustPressed(1, 73) then
-			Citizen.CreateThread(toggleFreecam)
+			toggleFreecam()
 		end
 		
 		-- SetGamePaused(freecamEnabled)
@@ -129,7 +131,7 @@ function processFreecam()
 							-- SetEntityAsMissionEntity(vehicle, true)
 							TaskWarpPedIntoVehicle(lastPed, vehicle, seat)
 						end
-						Citizen.CreateThread(toggleFreecam)
+						toggleFreecam()
 					end
 					
 					if IsEntityAVehicle(hitEnt) then
@@ -150,7 +152,7 @@ function processFreecam()
 							end
 							-- SetEntityAsNoLongerNeeded(lastPed)
 							TaskWarpPedIntoVehicle(targetPed, hitEnt, seat)
-							Citizen.CreateThread(toggleFreecam)
+							toggleFreecam()
 						end
 					end
 				end
