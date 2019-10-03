@@ -9,15 +9,13 @@ originalSelfRegistered = false
 function toggleFreecam()
 	Citizen.CreateThread(function()
 		freecamEnabled = not freecamEnabled
-
 		if freecamEnabled == true then
 			exports['shift-freecam']:SetActive(true)
 			StartScreenEffect(screenFX, 500, false)
 			PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
 			SetPlayerControl(PlayerId(), false, 0)
-			TaskVehicleDriveWander(PlayerPedId(), GetVehiclePedIsIn(PlayerPedId(), false), 10.0, 0)
-			
 			local vehicle = GetVehiclePedIsIn(PlayerPedId())
+			TaskVehicleDriveWander(PlayerPedId(), vehicle, false), 10.0, 0)
 			UseParticleFxAssetNextCall('core')
 			trail1 = StartParticleFxLoopedOnEntityBone('veh_light_red_trail', vehicle, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, GetEntityBoneIndexByName(vehicle, "taillight_l"), 1.0, false, false, false)
 			SetParticleFxLoopedEvolution(trail1, "speed", 1.0, false)
@@ -33,9 +31,8 @@ function toggleFreecam()
 			StopParticleFxLooped(trail1, 0)
 			StopParticleFxLooped(trail2, 0)
 		end
-		-- FreezeEntityPosition(PlayerPedId(), freecamEnabled)
 		Citizen.Wait(250)
-		StopScreenEffect()
+		-- StopScreenEffect()
 	end)
 end
 
