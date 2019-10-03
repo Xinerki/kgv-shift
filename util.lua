@@ -1,5 +1,3 @@
-
-
 function math.clamp(value, minClamp, maxClamp)
 	return math.min(maxClamp, math.max(value, minClamp))
 end
