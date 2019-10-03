@@ -85,6 +85,10 @@ end)
 fov = 50.0
 roll = 0.0
 
+originalPed = PlayerPedId()
+originalCar = 0
+originalSelfRegistered = false
+
 function processFreecam()
 	while true do 
 		if freecamEnabled == true then
@@ -128,6 +132,30 @@ function processFreecam()
 			DrawRect(0.5, 0.5, 0.01, 0.01, 240, 151, 63, 150)
 			
 			
+			if IsDisabledControlJustPressed(0, 23) and originalSelfRegistered == true then
+				lastPed = PlayerPedId()
+				if originalPed == lastPed then toggleFreecam() else
+					if IsPedInAnyVehicle(lastPed, false) == 1 then
+						inVehicle = true
+						vehicle = GetVehiclePedIsIn(lastPed, false)
+						seat = GetVehicleSeatPedIsIn(lastPed, vehicle)
+					end
+					if DoesEntityExist(originalPed) then
+						ClearPedTasksImmediately(originalPed)
+						ChangePlayerPed(PlayerId(), originalPed, 0, 0) -- SWITCH HAPPENS HERE
+						-- TaskSetBlockingOfNonTemporaryEvents(lastPed, true)
+						-- SetEntityAsMissionEntity(lastPed, 0, 0)
+						if inVehicle == true then 
+							-- SetEntityAsMissionEntity(vehicle, true)
+							TaskWarpPedIntoVehicle(lastPed, vehicle, seat)
+						end
+						-- SetEntityAsNoLongerNeeded(lastPed)
+						TaskWarpPedIntoVehicle(originalPed, originalCar, seat)
+						toggleFreecam()
+					end
+				end
+			end
+			
 			if IsDisabledControlJustPressed(0, 69) then
 			
 				local posX, posY, posZ = table.unpack(GetCamCoord(view1))
@@ -156,6 +184,7 @@ function processFreecam()
 					end
 					
 					if IsEntityAVehicle(hitEnt) then
+						if originalCar == 0 then originalCar = GetVehiclePedIsIn(lastPed) end
 						if IsPedInAnyVehicle(lastPed, false) == 1 then
 							inVehicle = true
 							vehicle = GetVehiclePedIsIn(lastPed, false)
@@ -166,11 +195,16 @@ function processFreecam()
 							ClearPedTasksImmediately(targetPed)
 							ChangePlayerPed(PlayerId(), targetPed, 0, 0) -- SWITCH HAPPENS HERE
 							-- TaskSetBlockingOfNonTemporaryEvents(lastPed, true)
-							-- SetEntityAsMissionEntity(lastPed, 0, 0)
+							if originalSelfRegistered == false then
+								SetEntityAsMissionEntity(lastPed, 0, 0)
+							end
 							if inVehicle == true then 
-								-- SetEntityAsMissionEntity(vehicle, true)
+								if originalSelfRegistered == false then
+									SetEntityAsMissionEntity(vehicle, true)
+								end
 								TaskWarpPedIntoVehicle(lastPed, vehicle, seat)
 							end
+							if originalSelfRegistered == false then originalSelfRegistered = true end
 							-- SetEntityAsNoLongerNeeded(lastPed)
 							TaskWarpPedIntoVehicle(targetPed, hitEnt, seat)
 							toggleFreecam()
