@@ -106,6 +106,11 @@ function processFreecam()
 			SetCamRot(view1, rotation.x, rotation.y, roll)
 			SetCamFov(view1, fov)
 			
+			-- DisplaySniperScopeThisFrame()
+			
+			local resX, resY = GetScreenActiveResolution()
+			DrawRect(0.5, 0.5, 0.01, 0.01, 240, 151, 63, 150)
+			
 			
 			if IsDisabledControlJustPressed(0, 69) then
 			
