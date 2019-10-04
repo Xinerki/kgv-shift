@@ -1,6 +1,7 @@
 
 freecamEnabled = false
 screenFX = "SwitchShortTrevorMid"
+camTransitionSpeed = 100
 
 originalPed = 0
 originalCar = 0
@@ -11,7 +12,7 @@ function toggleFreecam()
 		freecamEnabled = not freecamEnabled
 		if freecamEnabled == true then
 			exports['shift-freecam']:SetActive(true)
-			StartScreenEffect(screenFX, 500, false)
+			StartScreenEffect(screenFX, camTransitionSpeed, false)
 			PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
 			SetPlayerControl(PlayerId(), false, 0)
 			local vehicle = GetVehiclePedIsIn(PlayerPedId())
@@ -24,7 +25,7 @@ function toggleFreecam()
 			SetParticleFxLoopedEvolution(trail2, "speed", 1.0, false)
 		else
 			exports['shift-freecam']:SetActive(false)
-			StartScreenEffect(screenFX, 500, false)
+			StartScreenEffect(screenFX, camTransitionSpeed, false)
 			PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
 			SetPlayerControl(PlayerId(), true, 0)
 			ClearPedTasks(PlayerPedId())
@@ -63,11 +64,11 @@ Citizen.CreateThread(function ()
 					end
 					if DoesEntityExist(originalPed) then
 						ClearPedTasksImmediately(originalPed)
+						-- Wait(1) -- mandatoty frame delay
 						ChangePlayerPed(PlayerId(), originalPed, 0, 0) -- SWITCH HAPPENS HERE
 						if inVehicle == true then 
 							TaskWarpPedIntoVehicle(lastPed, vehicle, seat)
 						end
-						Wait(1500)
 						TaskWarpPedIntoVehicle(originalPed, originalCar, -1)
 						SetBlipAlpha(originalSelfBlip, 0)
 						toggleFreecam()
@@ -102,16 +103,22 @@ Citizen.CreateThread(function ()
 					end
 					
 					if IsEntityAVehicle(hitEnt) then
-						if originalCar == 0 then originalCar = hitEnt end
-						if originalPed == 0 then originalPed = lastPed end
 						if IsPedInAnyVehicle(lastPed, false) == 1 then
 							inVehicle = true
 							vehicle = GetVehiclePedIsIn(lastPed, false)
 							seat = GetVehicleSeatPedIsIn(lastPed, vehicle)
 						end
+						
+						if originalCar == 0 then originalCar = vehicle end
+						if originalPed == 0 then originalPed = lastPed end
+						
+						-- Citizen.Trace("hitEnt = ".. vehicle .. "\n")
+						-- Citizen.Trace("originalCar = ".. originalCar .. "\n")
+						
 						targetPed = GetPedInVehicleSeat(hitEnt, -1)
 						if DoesEntityExist(targetPed) then
 							ClearPedTasksImmediately(targetPed)
+							-- Wait(1) -- mandatoty frame delay
 							ChangePlayerPed(PlayerId(), targetPed, 0, 0) -- SWITCH HAPPENS HERE
 							
 							if lastPed == originalPed then 
